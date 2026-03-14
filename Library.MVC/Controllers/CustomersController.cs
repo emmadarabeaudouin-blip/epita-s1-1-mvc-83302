@@ -22,7 +22,7 @@ namespace Library.MVC.Controllers
         // GET: Customers
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Customers.ToListAsync());
+            return View(await _context.Invoices.ToListAsync());
         }
 
         // GET: Customers/Details/5
@@ -33,14 +33,14 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers
+            var member = await _context.Invoices // new Member
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (customer == null)
+            if (member == null)
             {
                 return NotFound();
             }
 
-            return View(customer);
+            return View(member);
         }
 
         // GET: Customers/Create
@@ -54,15 +54,15 @@ namespace Library.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Customer customer)
+        public async Task<IActionResult> Create([Bind("Id,FullName,Email,Phone")] Invoice member)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(customer);
+                _context.Add(member);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
+            return View(member);
         }
 
         // GET: Customers/Edit/5
@@ -73,12 +73,12 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers.FindAsync(id);
-            if (customer == null)
+            var member = await _context.Invoices.FindAsync(id);
+            if (member == null)
             {
                 return NotFound();
             }
-            return View(customer);
+            return View(member);
         }
 
         // POST: Customers/Edit/5
@@ -86,9 +86,9 @@ namespace Library.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Customer customer)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Email,Phone")] Invoice member)
         {
-            if (id != customer.Id)
+            if (id != member.Id)
             {
                 return NotFound();
             }
@@ -97,12 +97,12 @@ namespace Library.MVC.Controllers
             {
                 try
                 {
-                    _context.Update(customer);
+                    _context.Update(member);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CustomerExists(customer.Id))
+                    if (!_context.Invoices.Any(e=>e.Id==id))
                     {
                         return NotFound();
                     }
@@ -113,7 +113,7 @@ namespace Library.MVC.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(customer);
+            return View(member);
         }
 
         // GET: Customers/Delete/5
@@ -124,14 +124,14 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var customer = await _context.Customers
+            var member = await _context.Invoices
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (customer == null)
+            if (member == null)
             {
                 return NotFound();
             }
 
-            return View(customer);
+            return View(member);
         }
 
         // POST: Customers/Delete/5
@@ -139,19 +139,16 @@ namespace Library.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
-            if (customer != null)
+            var member = await _context.Invoices.FindAsync(id);
+            if (member != null)
             {
-                _context.Customers.Remove(customer);
+                _context.Invoices.Remove(member);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CustomerExists(int id)
-        {
-            return _context.Customers.Any(e => e.Id == id);
-        }
+      
     }
 }

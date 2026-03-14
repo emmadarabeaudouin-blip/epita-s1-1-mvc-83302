@@ -1,39 +1,29 @@
-﻿@model Library.Domain.Invoice
+﻿@model Library.Domain.InvoiceLine
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Delete Loan";
 }
 
-<h1>Edit</h1>
+<h1>Delete Loan</h1>
 
-<h4>Invoice</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="InvoiceDate" class="control-label"></label>
-                <input asp-for="InvoiceDate" class="form-control" />
-                <span asp-validation-for="InvoiceDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CustomerId" class="control-label"></label>
-                <select asp-for="CustomerId" class="form-control" asp-items="ViewBag.CustomerId"></select>
-                <span asp-validation-for="CustomerId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
+<h3>Are you sure you want to delete this loan?</h3>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<dl class="row">
+    <dt class="col-sm-2">Member</dt>
+    <dd class="col-sm-10">@Model.Invoice?.FullName</dd>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+    <dt class="col-sm-2">Book</dt>
+    <dd class="col-sm-10">@Model.Product?.Title</dd>
+
+    <dt class="col-sm-2">Loan Date</dt>
+    <dd class="col-sm-10">@Model.LoanDate.ToShortDateString()</dd>
+
+    <dt class="col-sm-2">Due Date</dt>
+    <dd class="col-sm-10">@Model.DueDate.ToShortDateString()</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="submit" value="Delete" class="btn btn-danger" />
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>

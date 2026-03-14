@@ -23,195 +23,170 @@ namespace Library.MVC.Controllers
         // GET: Invoices
         public async Task<IActionResult> Index()
         {
-            var invoices = await _context.Invoices
-                .Include(i => i.Customer)
-                .Include(i => i.Lines)
-                    .ThenInclude(l => l.Product)
-                .OrderByDescending(i => i.InvoiceDate)
+            var loans = await _context.InvoiceLines //new Loans
+                .Include(l => l.Invoice) //new Member
+                .Include(l => l.Product) //new Book
+                .OrderByDescending(l => l.LoanDate)
                 .ToListAsync();
 
-            return View(invoices);
+            return View(loans);
         }
 
         // GET: Invoices/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var invoice = await _context.Invoices
-                .Include(i => i.Customer)
-                .Include(i => i.Lines)
-                    .ThenInclude(l => l.Product)
-                .FirstOrDefaultAsync(i => i.Id == id);
+            var loan = await _context.InvoiceLines
+                .Include(l => l.Invoice) 
+                .Include(l => l.Product)
+                .FirstOrDefaultAsync(l => l.Id == id);
 
-            if (invoice == null)
+            if (loan == null)
             {
                 return NotFound();
             }
 
-            return View(invoice);
+            return View(loan);
         }
 
         // GET: Invoices/Create
         public async Task<IActionResult> Create()
         {
-            var vm = new CreateInvoiceViewModel
-            {
-                InvoiceDate = DateTime.Today,
-                Customers = await _context.Customers
-                    .OrderBy(c => c.Name)
-                    .Select(c => new SelectListItem
-                    {
-                        Value = c.Id.ToString(),
-                        Text = c.Name
-                    })
-                    .ToListAsync(),
+            await NewMethod();
 
-                Products = await _context.Products
-                    .OrderBy(p => p.Name)
-                    .Select(p => new SelectListItem
-                    {
-                        Value = p.Id.ToString(),
-                        Text = $"{p.Name} ({p.UnitPrice:C})"
-                    })
-                    .ToListAsync()
-            };
-
-            return View(vm);
+            return View();
         }
+
+        private async Task NewMethod()
+        {
+            ViewData["ProductId"] = new SelectList(
+                            await _context.Products
+                                .Where(p => p.IsAvailable)
+                                .OrderBy(p => p.Title)
+                                .ToListAsync(),
+                            "Id", "Title");
+
+            ViewData["InvoiceId"] = new SelectList(
+                await _context.Invoices
+                    .OrderBy(i => i.FullName)
+                    .ToListAsync(),
+                "Id", "FullName");
+        }
+
+
+
+
 
         // POST: Invoices/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateInvoiceViewModel vm)
+        public async Task<IActionResult> Create([Bind("InvoiceId,ProductId,DueDate")] InvoiceLine loan)
         {
-            // Repopulate dropdowns if validation fails
-            async Task LoadListsAsync()
-            {
-                vm.Customers = await _context.Customers
-                    .OrderBy(c => c.Name)
-                    .Select(c => new SelectListItem
-                    {
-                        Value = c.Id.ToString(),
-                        Text = c.Name
-                    })
-                    .ToListAsync();
+            // Remove navigation properties from validation
+            ModelState.Remove("Invoice");
+            ModelState.Remove("Product");
 
-                vm.Products = await _context.Products
-                    .OrderBy(p => p.Name)
-                    .Select(p => new SelectListItem
-                    {
-                        Value = p.Id.ToString(),
-                        Text = $"{p.Name} ({p.UnitPrice:C})"
-                    })
-                    .ToListAsync();
+            // Check book is still available
+            var book = await _context.Products.FindAsync(loan.ProductId);
+            if (book == null || !book.IsAvailable)
+            {
+                ModelState.AddModelError("ProductId", "This book is not available for loan.");
             }
 
-            if (!ModelState.IsValid)
+            // Check no active loan already exists for this book
+            var activeLoan = await _context.InvoiceLines
+                .AnyAsync(l => l.ProductId == loan.ProductId && l.ReturnedDate == null);
+            if (activeLoan)
             {
-                await LoadListsAsync();
-                return View(vm);
-            }
-
-            var customerExists = await _context.Customers
-                .AnyAsync(c => c.Id == vm.CustomerId);
-
-            if (!customerExists)
-            {
-                ModelState.AddModelError(nameof(vm.CustomerId), "Selected customer does not exist.");
-                await LoadListsAsync();
-                return View(vm);
-            }
-
-            var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == vm.ProductId);
-
-            if (product == null)
-            {
-                ModelState.AddModelError(nameof(vm.ProductId), "Selected product does not exist.");
-                await LoadListsAsync();
-                return View(vm);
-            }
-
-            var invoice = new Invoice
-            {
-                InvoiceDate = vm.InvoiceDate,
-                CustomerId = vm.CustomerId,
-                Lines = new List<InvoiceLine>
-                {
-                    new InvoiceLine
-                    {
-                        ProductId = vm.ProductId,
-                        Quantity = vm.Quantity,
-                        UnitPrice = product.UnitPrice // snapshot price
-                    }
-                }
-            };
-
-            _context.Invoices.Add(invoice);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Details), new { id = invoice.Id });
-        }
-
-
-        // GET: Invoices/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var invoice = await _context.Invoices.FindAsync(id);
-            if (invoice == null)
-            {
-                return NotFound();
-            }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", invoice.CustomerId);
-            return View(invoice);
-        }
-
-        // POST: Invoices/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,InvoiceDate,CustomerId")] Invoice invoice)
-        {
-            if (id != invoice.Id)
-            {
-                return NotFound();
+                ModelState.AddModelError("ProductId", "This book already has an active loan.");
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(invoice);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!InvoiceExists(invoice.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                loan.LoanDate = DateTime.Today;
+                _context.InvoiceLines.Add(loan);
+
+                book!.IsAvailable = false;
+                _context.Products.Update(book);
+
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", invoice.CustomerId);
-            return View(invoice);
+
+            ViewData["ProductId"] = new SelectList(
+                await _context.Products.Where(p => p.IsAvailable).ToListAsync(),
+                "Id", "Title", loan.ProductId);
+
+            ViewData["InvoiceId"] = new SelectList(
+                await _context.Invoices.ToListAsync(),
+                "Id", "FullName", loan.InvoiceId);
+
+            return View(loan);
         }
 
-        
+
+        // POST: Invoices/MarkReturned/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkReturned(int id)
+        {
+            var loan = await _context.InvoiceLines
+                .Include(l => l.Product)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (loan == null) return NotFound();
+
+            // set returned date
+            loan.ReturnedDate = DateTime.Today;
+
+            // mark book as available 
+            loan.Product!.IsAvailable = true;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+        // GET: Invoices/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var loan = await _context.InvoiceLines
+                .Include(l => l.Invoice)
+                .Include(l => l.Product)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (loan == null) return NotFound();
+
+            return View(loan);
+        }
+
+        // POST: Invoices/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var loan = await _context.InvoiceLines
+                .Include(l => l.Product)
+                .FirstOrDefaultAsync(l => l.Id == id);
+
+            if (loan != null)
+            {
+                // Free up the book if loan was still active
+                if (loan.ReturnedDate == null && loan.Product != null)
+                    loan.Product.IsAvailable = true;
+
+                _context.InvoiceLines.Remove(loan);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         private bool InvoiceExists(int id)
         {
-            return _context.Invoices.Any(e => e.Id == id);
+            return _context.InvoiceLines.Any(e => e.Id == id);
         }
+
     }
 }

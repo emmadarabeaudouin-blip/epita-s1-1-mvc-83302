@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Library.MVC.Data.Migrations
+namespace Library.MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -30,7 +30,15 @@ namespace Library.MVC.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -47,11 +55,20 @@ namespace Library.MVC.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("InvoiceDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -68,18 +85,20 @@ namespace Library.MVC.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("InvoiceId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("LoanDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
+                    b.Property<DateTime?>("ReturnedDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -98,13 +117,24 @@ namespace Library.MVC.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Author")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("UnitPrice")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Isbn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -315,19 +345,15 @@ namespace Library.MVC.Data.Migrations
 
             modelBuilder.Entity("Library.Domain.Invoice", b =>
                 {
-                    b.HasOne("Library.Domain.Customer", "Customer")
-                        .WithMany("Invoices")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
+                    b.HasOne("Library.Domain.Customer", null)
+                        .WithMany("Loans")
+                        .HasForeignKey("CustomerId");
                 });
 
             modelBuilder.Entity("Library.Domain.InvoiceLine", b =>
                 {
                     b.HasOne("Library.Domain.Invoice", "Invoice")
-                        .WithMany("Lines")
+                        .WithMany("InvoiceLines")
                         .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -396,12 +422,12 @@ namespace Library.MVC.Data.Migrations
 
             modelBuilder.Entity("Library.Domain.Customer", b =>
                 {
-                    b.Navigation("Invoices");
+                    b.Navigation("Loans");
                 });
 
             modelBuilder.Entity("Library.Domain.Invoice", b =>
                 {
-                    b.Navigation("Lines");
+                    b.Navigation("InvoiceLines");
                 });
 
             modelBuilder.Entity("Library.Domain.Product", b =>

@@ -14,17 +14,11 @@ namespace Library.MVC.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // 1 Customer -> Many Invoices
-            modelBuilder.Entity<Invoice>()
-                .HasOne(i => i.Customer)
-                .WithMany(c => c.Invoices)
-                .HasForeignKey(i => i.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
+            
             // 1 Invoice -> Many Lines
             modelBuilder.Entity<InvoiceLine>()
                 .HasOne(l => l.Invoice)
-                .WithMany(i => i.Lines)
+                .WithMany(i => i.InvoiceLines)
                 .HasForeignKey(l => l.InvoiceId);
 
             // 1 Product -> Many Lines
@@ -33,14 +27,6 @@ namespace Library.MVC.Data
                 .WithMany(p => p.InvoiceLines)
                 .HasForeignKey(l => l.ProductId);
 
-            // money columns: be explicit
-            modelBuilder.Entity<Product>()
-                .Property(p => p.UnitPrice)
-                .HasPrecision(10, 2);
-
-            modelBuilder.Entity<InvoiceLine>()
-                .Property(l => l.UnitPrice)
-                .HasPrecision(10, 2);
         }
     }
 }

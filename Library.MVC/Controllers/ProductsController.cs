@@ -20,9 +20,33 @@ namespace Library.MVC.Controllers
         }
 
         // GET: Products
-        public async Task<IActionResult> Index()
+        // GET: Products
+        public async Task<IActionResult> Index(string? search, string? category, string? availability)
         {
-            return View(await _context.Products.ToListAsync());
+            IQueryable<Product> query = _context.Products;
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(p => p.Title.Contains(search) || p.Author.Contains(search));
+
+            if (!string.IsNullOrWhiteSpace(category))
+                query = query.Where(p => p.Category == category);
+
+            if (availability == "available")
+                query = query.Where(p => p.IsAvailable);
+            else if (availability == "onloan")
+                query = query.Where(p => !p.IsAvailable);
+
+            // Pass filter values back to view to keep form state
+            ViewData["search"] = search;
+            ViewData["category"] = category;
+            ViewData["availability"] = availability;
+            ViewData["categories"] = await _context.Products
+                .Select(p => p.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            return View(await query.OrderBy(p => p.Title).ToListAsync());
         }
 
         // GET: Products/Details/5
@@ -54,7 +78,7 @@ namespace Library.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,UnitPrice")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Title,Author,Isbn,Category,IsAvailable")] Product product)
         {
             if (ModelState.IsValid)
             {
@@ -86,7 +110,7 @@ namespace Library.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,UnitPrice")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,Isbn,Category,IsAvailable")] Product product)
         {
             if (id != product.Id)
             {
