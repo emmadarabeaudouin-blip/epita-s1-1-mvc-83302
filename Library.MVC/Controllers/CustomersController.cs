@@ -10,46 +10,22 @@ using Library.MVC.Data;
 
 namespace Library.MVC.Controllers
 {
-    public class ProductsController : Controller
+    public class CustomersController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public ProductsController(ApplicationDbContext context)
+        public CustomersController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Products
-        // GET: Products
-        public async Task<IActionResult> Index(string? search, string? category, string? availability)
+        // GET: Customers
+        public async Task<IActionResult> Index()
         {
-            IQueryable<Product> query = _context.Products;
-
-            if (!string.IsNullOrWhiteSpace(search))
-                query = query.Where(p => p.Title.Contains(search) || p.Author.Contains(search));
-
-            if (!string.IsNullOrWhiteSpace(category))
-                query = query.Where(p => p.Category == category);
-
-            if (availability == "available")
-                query = query.Where(p => p.IsAvailable);
-            else if (availability == "onloan")
-                query = query.Where(p => !p.IsAvailable);
-
-            // Pass filter values back to view to keep form state
-            ViewData["search"] = search;
-            ViewData["category"] = category;
-            ViewData["availability"] = availability;
-            ViewData["categories"] = await _context.Products
-                .Select(p => p.Category)
-                .Distinct()
-                .OrderBy(c => c)
-                .ToListAsync();
-
-            return View(await query.OrderBy(p => p.Title).ToListAsync());
+            return View(await _context.Invoices.ToListAsync());
         }
 
-        // GET: Products/Details/5
+        // GET: Customers/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -57,39 +33,39 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
+            var member = await _context.Invoices // new Member
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (member == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(member);
         }
 
-        // GET: Products/Create
+        // GET: Customers/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Products/Create
+        // POST: Customers/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Author,Isbn,Category,IsAvailable")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,FullName,Email,Phone")] Invoice member)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
+                _context.Add(member);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(member);
         }
 
-        // GET: Products/Edit/5
+        // GET: Customers/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -97,22 +73,22 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            var member = await _context.Invoices.FindAsync(id);
+            if (member == null)
             {
                 return NotFound();
             }
-            return View(product);
+            return View(member);
         }
 
-        // POST: Products/Edit/5
+        // POST: Customers/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Author,Isbn,Category,IsAvailable")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Email,Phone")] Invoice member)
         {
-            if (id != product.Id)
+            if (id != member.Id)
             {
                 return NotFound();
             }
@@ -121,12 +97,12 @@ namespace Library.MVC.Controllers
             {
                 try
                 {
-                    _context.Update(product);
+                    _context.Update(member);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.Id))
+                    if (!_context.Invoices.Any(e=>e.Id==id))
                     {
                         return NotFound();
                     }
@@ -137,10 +113,10 @@ namespace Library.MVC.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            return View(member);
         }
 
-        // GET: Products/Delete/5
+        // GET: Customers/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -148,34 +124,31 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
+            var member = await _context.Invoices
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (member == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(member);
         }
 
-        // POST: Products/Delete/5
+        // POST: Customers/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product != null)
+            var member = await _context.Invoices.FindAsync(id);
+            if (member != null)
             {
-                _context.Products.Remove(product);
+                _context.Invoices.Remove(member);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductExists(int id)
-        {
-            return _context.Products.Any(e => e.Id == id);
-        }
+      
     }
 }
