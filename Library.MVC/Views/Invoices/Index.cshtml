@@ -1,0 +1,61 @@
+﻿@model IEnumerable<Library.Domain.InvoiceLine>
+
+@{
+    ViewData["Title"] = "Loans";
+}
+
+<h1>Loans</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create Loan</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Member</th>
+            <th>Book</th>
+            <th>Loan Date</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var loan in Model)
+        {
+            <tr>
+                <td>@loan.Id</td>
+                <td>@loan.Invoice?.FullName</td>
+                <td>@loan.Product?.Title</td>
+                <td>@loan.LoanDate.ToShortDateString()</td>
+                <td>@loan.DueDate.ToShortDateString()</td>
+                <td>
+                    @if (loan.ReturnedDate != null)
+                    {
+                        <span class="badge bg-success">Returned</span>
+                    }
+                    else if (loan.IsOverdue)
+                    {
+                        <span class="badge bg-danger">Overdue</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Active</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@loan.Id" class="btn btn-sm btn-info">Details</a>
+                    @if (loan.ReturnedDate == null)
+                    {
+                        <form asp-action="MarkReturned" asp-route-id="@loan.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-success">Mark Returned</button>
+                        </form>
+                    }
+                    <a asp-action="Delete" asp-route-id="@loan.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

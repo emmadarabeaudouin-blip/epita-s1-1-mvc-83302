@@ -1,0 +1,40 @@
+﻿@model Library.Domain.InvoiceLine
+
+@{
+    ViewData["Title"] = "Create Loan";
+}
+
+<h1>Create Loan</h1>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="InvoiceId" class="form-label">Member</label>
+        <select asp-for="InvoiceId" asp-items="ViewBag.InvoiceId" class="form-select">
+            <option value="">-- Select member --</option>
+        </select>
+        <span asp-validation-for="InvoiceId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ProductId" class="form-label">Book</label>
+        <select asp-for="ProductId" asp-items="ViewBag.ProductId" class="form-select">
+            <option value="">-- Select available book --</option>
+        </select>
+        <span asp-validation-for="ProductId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DueDate" class="form-label">Due Date</label>
+        <input asp-for="DueDate" class="form-control" type="date" />
+        <span asp-validation-for="DueDate" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Loan</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Library.MVC.Data.Migrations
+namespace Library.MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260303171303_Product")]
-    partial class Product
+    [Migration("20260314155758_FreshStart")]
+    partial class FreshStart
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,93 @@ namespace Library.MVC.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Library.Domain.Customer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("Library.Domain.Invoice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("Invoices");
+                });
+
+            modelBuilder.Entity("Library.Domain.InvoiceLine", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LoanDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReturnedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("InvoiceLines");
+                });
+
             modelBuilder.Entity("Library.Domain.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -33,7 +120,22 @@ namespace Library.MVC.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Author")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Isbn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -244,6 +346,32 @@ namespace Library.MVC.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Library.Domain.Invoice", b =>
+                {
+                    b.HasOne("Library.Domain.Customer", null)
+                        .WithMany("Loans")
+                        .HasForeignKey("CustomerId");
+                });
+
+            modelBuilder.Entity("Library.Domain.InvoiceLine", b =>
+                {
+                    b.HasOne("Library.Domain.Invoice", "Invoice")
+                        .WithMany("InvoiceLines")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Library.Domain.Product", "Product")
+                        .WithMany("InvoiceLines")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Invoice");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -293,6 +421,21 @@ namespace Library.MVC.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Library.Domain.Customer", b =>
+                {
+                    b.Navigation("Loans");
+                });
+
+            modelBuilder.Entity("Library.Domain.Invoice", b =>
+                {
+                    b.Navigation("InvoiceLines");
+                });
+
+            modelBuilder.Entity("Library.Domain.Product", b =>
+                {
+                    b.Navigation("InvoiceLines");
                 });
 #pragma warning restore 612, 618
         }

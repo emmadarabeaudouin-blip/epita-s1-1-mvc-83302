@@ -1,24 +1,37 @@
 ﻿@model Library.Domain.Product
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Book Details";
 }
 
-<h1>Details</h1>
+<h1>Book Details</h1>
+<hr />
 
-<div>
-    <h4>Product</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+<dl class="row">
+    <dt class="col-sm-2">Title</dt>
+    <dd class="col-sm-10">@Model.Title</dd>
+
+    <dt class="col-sm-2">Author</dt>
+    <dd class="col-sm-10">@Model.Author</dd>
+
+    <dt class="col-sm-2">Isbn</dt>
+    <dd class="col-sm-10">@Model.Isbn</dd>
+
+    <dt class="col-sm-2">Category</dt>
+    <dd class="col-sm-10">@Model.Category</dd>
+
+    <dt class="col-sm-2">Available</dt>
+    <dd class="col-sm-10">
+        @if (Model.IsAvailable)
+        {
+            <span class="badge bg-success">Available</span>
+        }
+        else
+        {
+            <span class="badge bg-danger">On Loan</span>
+        }
+    </dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+<a asp-action="Index" class="btn btn-secondary">Back to List</a>

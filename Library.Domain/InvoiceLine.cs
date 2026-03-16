@@ -16,7 +16,10 @@ namespace Library.Domain
         public int ProductId { get; set; }
         public Product? Product { get; set; }
 
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; } // snapshot price at time of invoice
+        public DateTime LoanDate { get; set; }
+        public DateTime DueDate { get; set; }
+        public DateTime? ReturnedDate { get; set; }
+        public bool IsActive=> ReturnedDate == null;
+        public bool IsOverdue => ReturnedDate == null && DueDate < DateTime.UtcNow;
     }
 }

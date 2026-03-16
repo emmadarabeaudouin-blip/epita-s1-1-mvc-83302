@@ -1,35 +1,77 @@
 ﻿@model IEnumerable<Library.Domain.Product>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Books";
 }
 
-<h1>Index</h1>
+<h1>Books</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Add Book</a>
 </p>
+
+Search & Filter
+<form method="get" asp-action="Index" class="row g-3 mb-4">
+    <div class="col-md-4">
+        <input type="text" name="search" value="@ViewData["search"]"
+               placeholder="Search by title or author..." class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <select name="category" class="form-select">
+            <option value="">-- All Categories --</option>
+            @foreach (var cat in (IEnumerable<string>)(ViewData["categories"] ?? new List<string>()))
+            {
+                <option value="@cat" selected="@(ViewData["category"]?.ToString() == cat)">@cat</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="availability" class="form-select">
+            <option value="">All</option>
+            <option value="available" selected="@(ViewData["availability"]?.ToString() == "available")">Available</option>
+            <option value="onloan" selected="@(ViewData["availability"]?.ToString() == "onloan")">On Loan</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-secondary w-100">Filter</button>
+    </div>
+</form>
+
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Isbn</th>
+            <th>Category</th>
+            <th>Available</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>@item.Author</td>
+                <td>@item.Isbn</td>
+                <td>@item.Category</td>
+                <td>
+                    @if (item.IsAvailable)
+                    {
+                        <span class="badge bg-success">Available</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">On Loan</span>
+                    }
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

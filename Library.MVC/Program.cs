@@ -10,7 +10,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
@@ -42,5 +43,11 @@ app.MapControllerRoute(
 
 app.MapRazorPages()
    .WithStaticAssets();
+
+using(var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await SeedData.InitializeAsync(services);
+}
 
 app.Run();
